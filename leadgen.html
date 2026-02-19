@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Global Lead Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+        .box { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        button { background: #007bff; color: white; border: none; padding: 15px 30px; font-size: 16px; cursor: pointer; border-radius: 5px; margin: 5px; }
+        button:hover { background: #0056b3; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #007bff; color: white; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        h1 { color: #333; }
+        select, input { padding: 10px; margin: 5px; font-size: 14px; }
+        .flag { font-size: 20px; margin-right: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h1>🌍 Global Lead Generator</h1>
+    <p>Generate leads for US, UK, Canada, Australia & more</p>
+    
+    <select id="country">
+        <option value="all">🌍 All Countries</option>
+        <option value="us">🇺🇸 United States</option>
+        <option value="uk">🇬🇧 United Kingdom</option>
+        <option value="canada">🇨🇦 Canada</option>
+        <option value="australia">🇦🇺 Australia</option>
+        <option value="europe">🇪🇺 Europe (Germany, France, etc.)</option>
+    </select>
+    
+    <select id="type">
+        <option value="all">All Businesses</option>
+        <option value="restaurant">Restaurants</option>
+        <option value="catering">Catering</option>
+        <option value="retail">Retail</option>
+        <option value="tech">Tech/Startups</option>
+    </select>
+    
+    <input type="number" id="num" value="100" min="10" max="500" style="width: 80px;">
+    <label>leads</label>
+    
+    <br><br>
+    <button onclick="makeLeads()">Generate Leads</button>
+    <button onclick="downloadCSV()" style="background: #28a745;">Download CSV</button>
+</div>
+
+<div class="box">
+    <table id="myTable">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Business Name</th>
+                <th>Type</th>
+                <th>Country</th>
+                <th>Contact</th>
+                <th>Job Title</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>City</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <tr><td colspan="9" style="text-align:center;padding:40px;">Click "Generate Leads" to start</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+// Business names by type
+var businesses = {
+    restaurant: ["Bella Vista Italian","Golden Dragon Chinese","Smokehouse BBQ","Ocean Catch Seafood","Taco Fiesta Mexican","Curry House Indian","Burger Joint","Sakura Sushi","Mama's Kitchen","Steakhouse Prime","Pizza Roma","Cafe Milano","Thai Spice","Pho Real Vietnamese","The Breakfast Club","Royal Spice","Noodle House","Grill Master","Seafood Palace","Tandoori Nights"],
+    catering: ["Elite Catering Co","Wedding Bells Catering","Gourmet To Go","Royal Feast Catering","BBQ Pit Masters","Sweet Dreams Bakery","Fresh & Green Catering","Party Platters Plus","Chef's Table Catering","Bistro on Wheels","Grand Buffet Catering","Coffee & Co Catering","Events Plus Catering","Luxury Bites","Corporate Catering Pro"],
+    retail: ["Urban Outfitters","Tech Gadget Store","Fresh Market","Home Comfort Furniture","Beauty Bar","Sports Zone","Pet Paradise","Book Nook","Toy Kingdom","Garden Center Pro","Auto Parts Plus","Jewelry Box","Fashion Forward","Electronics Hub","Organic Grocers"],
+    tech: ["NexGen Innovations","Green Energy Solutions","Urban Mobility Co","EdTech Revolution","HealthTrack App","FoodDelivery Pro","SmartHome Systems","CryptoVault Startup","Wearable Tech Co","AgriTech Solutions","CloudSync Pro","DataFlow Systems","AI NeuralForge","Fintech VaultPay","Cyber ShieldSec","Quantum Labs","Digital Dynamics","Smart Solutions","Future Tech","Innovation Hub"]
+};
+
+// Cities and phone formats by country
+var countryData = {
+    us: {
+        cities: ["New York, NY","Los Angeles, CA","Chicago, IL","Houston, TX","Phoenix, AZ","Philadelphia, PA","San Antonio, TX","San Diego, CA","Dallas, TX","San Jose, CA","Austin, TX","Jacksonville, FL","Columbus, OH","Charlotte, NC","San Francisco, CA","Indianapolis, IN","Seattle, WA","Denver, CO","Washington, DC","Boston, MA","Nashville, TN","Detroit, MI","Oklahoma City, OK","Portland, OR","Las Vegas, NV","Louisville, KY","Baltimore, MD","Milwaukee, WI","Albuquerque, NM","Tucson, AZ"],
+        phone: function() { return "+1 (" + r(200,999) + ") " + r(100,999) + "-" + r(1000,9999); }
+    },
+    uk: {
+        cities: ["London","Manchester","Birmingham","Leeds","Glasgow","Sheffield","Bradford","Liverpool","Edinburgh","Bristol","Cardiff","Belfast","Leicester","Wakefield","Coventry","Nottingham","Newcastle","Doncaster","Milton Keynes","Sunderland"],
+        phone: function() { return "+44 7" + r(100,999) + " " + r(100,999) + " " + r(100,999); }
+    },
+    canada: {
+        cities: ["Toronto, ON","Montreal, QC","Vancouver, BC","Calgary, AB","Edmonton, AB","Ottawa, ON","Winnipeg, MB","Quebec City, QC","Hamilton, ON","Kitchener, ON","London, ON","Victoria, BC","Halifax, NS","Oshawa, ON","Windsor, ON","Saskatoon, SK","Regina, SK","Barrie, ON","St. John's, NL","Kelowna, BC"],
+        phone: function() { return "+1 (" + r(200,999) + ") " + r(100,999) + "-" + r(1000,9999); }
+    },
+    australia: {
+        cities: ["Sydney, NSW","Melbourne, VIC","Brisbane, QLD","Perth, WA","Adelaide, SA","Gold Coast, QLD","Newcastle, NSW","Canberra, ACT","Sunshine Coast, QLD","Wollongong, NSW","Hobart, TAS","Geelong, VIC","Townsville, QLD","Cairns, QLD","Darwin, NT","Toowoomba, QLD","Ballarat, VIC","Bendigo, VIC","Albury, NSW","Launceston, TAS"],
+        phone: function() { return "+61 4" + r(10,99) + " " + r(100,999) + " " + r(100,999); }
+    },
+    europe: {
+        cities: ["Berlin, Germany","Paris, France","Madrid, Spain","Rome, Italy","Amsterdam, Netherlands","Vienna, Austria","Brussels, Belgium","Zurich, Switzerland","Stockholm, Sweden","Copenhagen, Denmark","Helsinki, Finland","Oslo, Norway","Dublin, Ireland","Lisbon, Portugal","Prague, Czech Republic","Warsaw, Poland","Budapest, Hungary","Athens, Greece","Milan, Italy","Barcelona, Spain"],
+        phone: function() { return "+49 " + r(100,999) + " " + r(10000000,99999999); }
+    }
+};
+
+var firstNames = ["James","Maria","Robert","Jennifer","Michael","Linda","William","Patricia","David","Elizabeth","Richard","Susan","Joseph","Jessica","Thomas","Sarah","Charles","Karen","Christopher","Nancy","Daniel","Lisa","Matthew","Betty","Anthony","Margaret","Mark","Sandra","Donald","Ashley"];
+
+var lastNames = ["Smith","Johnson","Williams","Brown","Jones","Garcia","Miller","Davis","Rodriguez","Martinez","Hernandez","Lopez","Gonzalez","Wilson","Anderson","Thomas","Taylor","Moore","Jackson","Martin","Lee","Perez","Thompson","White","Harris","Sanchez","Clark","Ramirez","Lewis","Robinson"];
+
+var jobs = ["Owner","Manager","Director","CEO","Founder","Head of Operations","Sales Manager","Marketing Director","General Manager","Business Owner","Managing Director","Proprietor","Partner","Administrator","Coordinator"];
+
+var myLeads = [];
+
+function r(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function random(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function makeLeads() {
+    var country = document.getElementById("country").value;
+    var type = document.getElementById("type").value;
+    var num = parseInt(document.getElementById("num").value);
+    
+    var countries = country === "all" ? ["us","uk","canada","australia","europe"] : [country];
+    var types = type === "all" ? ["restaurant","catering","retail","tech"] : [type];
+    
+    myLeads = [];
+    var html = "";
+    
+    for(var i=0; i<num; i++) {
+        var c = random(countries);
+        var t = random(types);
+        var business = random(businesses[t]);
+        var first = random(firstNames);
+        var last = random(lastNames);
+        var email = first.toLowerCase() + "." + last.toLowerCase() + "@" + business.toLowerCase().replace(/\s/g,'').replace(/&/g,'and') + ".com";
+        
+        myLeads.push({
+            num: i+1,
+            business: business,
+            type: t,
+            country: c.toUpperCase(),
+            name: first + " " + last,
+            job: random(jobs),
+            email: email,
+            phone: countryData[c].phone(),
+            city: random(countryData[c].cities)
+        });
+        
+        html += "<tr>";
+        html += "<td>" + (i+1) + "</td>";
+        html += "<td><b>" + business + "</b></td>";
+        html += "<td>" + t + "</td>";
+        html += "<td>" + c.toUpperCase() + "</td>";
+        html += "<td>" + first + " " + last + "</td>";
+        html += "<td>" + random(jobs) + "</td>";
+        html += "<td>" + email + "</td>";
+        html += "<td>" + myLeads[i].phone + "</td>";
+        html += "<td>" + myLeads[i].city + "</td>";
+        html += "</tr>";
+    }
+    
+    document.getElementById("tableBody").innerHTML = html;
+    alert("Generated " + num + " leads from " + (country === "all" ? "multiple countries" : country.toUpperCase()) + "!");
+}
+
+function downloadCSV() {
+    if(myLeads.length === 0) {
+        alert("Generate leads first!");
+        return;
+    }
+    
+    var csv = "Number,Business Name,Type,Country,Contact Name,Job Title,Email,Phone,City\n";
+    
+    for(var i=0; i<myLeads.length; i++) {
+        var l = myLeads[i];
+        csv += l.num + "," + l.business + "," + l.type + "," + l.country + "," + l.name + "," + l.job + "," + l.email + "," + l.phone + "," + l.city + "\n";
+    }
+    
+    var blob = new Blob([csv], {type: 'text/csv'});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "global_leads.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    alert("CSV downloaded!");
+}
+</script>
+
+</body>
+</html>
